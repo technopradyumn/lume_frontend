@@ -382,7 +382,7 @@
   .content-scroll {
     height: 100%;
     box-sizing: border-box;
-    padding: var(--space-4);
+    padding: var(--space-6) var(--space-4) var(--space-4);
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--space-10));
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;

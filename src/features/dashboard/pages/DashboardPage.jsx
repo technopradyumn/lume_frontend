@@ -13,6 +13,7 @@ export function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [videos, setVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [statsUnavailable, setStatsUnavailable] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
 
   useEffect(() => {
@@ -26,7 +27,8 @@ export function DashboardPage() {
         getChannelStats().catch(() => null),
         getChannelVideos().catch(() => []),
       ]);
-      setStats(nextStats);
+      setStats(nextStats || null);
+      setStatsUnavailable(!nextStats);
       setVideos(nextVideos || []);
     } finally {
       setIsLoading(false);
@@ -90,7 +92,7 @@ export function DashboardPage() {
         className="dashboard-overview__stats"
         aria-label="Channel performance"
       >
-        {isLoading || !stats ? Array.from({ length: 4 }).map((_, index) => (
+        {isLoading || statsUnavailable ? Array.from({ length: 4 }).map((_, index) => (
           <div key={index} className="stat-card" aria-label="Loading channel metric">
             <div className="shimmer" style={{ width: 42, height: 42, borderRadius: "var(--radius-lg)" }} />
             <div className="shimmer" style={{ width: 84, height: 28, marginTop: 14 }} />
