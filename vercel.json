@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://lume-backend-cggh.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
