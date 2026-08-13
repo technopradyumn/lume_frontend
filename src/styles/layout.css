@@ -367,11 +367,17 @@
     overflow: hidden;
   }
   .content-scroll {
+    height: 100%;
     box-sizing: border-box;
     padding: var(--space-4);
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--space-6));
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
+    scroll-padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--space-8));
+  }
+  .content-scroll > .page-container {
+    min-height: 100%;
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--space-8));
   }
   .bottom-nav {
     display: flex;
