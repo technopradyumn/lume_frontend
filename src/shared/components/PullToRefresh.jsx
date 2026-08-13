@@ -18,6 +18,7 @@ export function PullToRefresh({ children, onRefresh }) {
 
   return (
     <div
+      className="content-scroll"
       onTouchStart={(event) => { if (event.currentTarget.scrollTop === 0) startY.current = event.touches[0].clientY; }}
       onTouchMove={(event) => {
         const next = event.touches[0].clientY - startY.current;

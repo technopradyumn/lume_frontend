@@ -30,7 +30,7 @@ const CREATOR_ITEMS = [
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
-export function Sidebar({ collapsed, mobileOpen }) {
+export function Sidebar({ collapsed, mobileOpen, onNavigate }) {
   const sidebarClass = [
     "sidebar",
     collapsed ? "sidebar--collapsed" : "",
@@ -49,6 +49,7 @@ export function Sidebar({ collapsed, mobileOpen }) {
           className={({ isActive }) =>
             `sidebar__item ${isActive ? "sidebar__item--active" : ""}`
           }
+          onClick={onNavigate}
         >
           <item.icon className="sidebar__icon" />
           <span className="sidebar__label">{item.label}</span>
@@ -65,6 +66,7 @@ export function Sidebar({ collapsed, mobileOpen }) {
           className={({ isActive }) =>
             `sidebar__item ${isActive ? "sidebar__item--active" : ""}`
           }
+          onClick={onNavigate}
         >
           <item.icon className="sidebar__icon" />
           <span className="sidebar__label">{item.label}</span>
@@ -81,6 +83,7 @@ export function Sidebar({ collapsed, mobileOpen }) {
           className={({ isActive }) =>
             `sidebar__item ${isActive ? "sidebar__item--active" : ""}`
           }
+          onClick={onNavigate}
         >
           <item.icon className="sidebar__icon" />
           <span className="sidebar__label">{item.label}</span>

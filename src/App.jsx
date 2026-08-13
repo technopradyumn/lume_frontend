@@ -43,7 +43,11 @@ function AppLayout() {
         sidebarCollapsed={sidebarCollapsed}
         onToggleSidebar={toggleSidebar}
       />
-      <Sidebar collapsed={sidebarCollapsed} mobileOpen={mobileMenuOpen} />
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        mobileOpen={mobileMenuOpen}
+        onNavigate={() => setMobileMenuOpen(false)}
+      />
       {mobileMenuOpen && (
         <div
           className="app__mobile-backdrop"
