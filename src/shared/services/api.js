@@ -1,5 +1,13 @@
 import axios from "axios";
 
+const getResourceId = (resource, label = "resource") => {
+  const id = typeof resource === "object" ? resource?._id || resource?.id : resource;
+  if (!id || typeof id !== "string") {
+    throw new Error(`A valid ${label} id is required`);
+  }
+  return id;
+};
+
 const API_BASE_URL = "/api/v1";
 const UPLOAD_API_BASE_URL =
   import.meta.env.VITE_UPLOAD_API_BASE_URL ||
@@ -64,7 +72,7 @@ export const getVideos = async (query = "", category = "", userId = "") => {
 };
 
 export const getVideoById = async (id) => {
-  const res = await apiClient.get(`/videos/${id}`);
+  const res = await apiClient.get(`/videos/${getResourceId(id, "video")}`);
   return res.data?.data;
 };
 
@@ -93,12 +101,12 @@ export const deleteVideo = async (videoId) => {
 };
 
 export const toggleVideoLike = async (videoId) => {
-  const res = await apiClient.post(`/likes/toggle/v/${videoId}`);
+  const res = await apiClient.post(`/likes/toggle/v/${getResourceId(videoId, "video")}`);
   return res.data?.data;
 };
 
 export const toggleCommentLike = async (commentId) => {
-  const res = await apiClient.post(`/likes/toggle/c/${commentId}`);
+  const res = await apiClient.post(`/likes/toggle/c/${getResourceId(commentId, "comment")}`);
   return res.data?.data;
 };
 
@@ -108,7 +116,7 @@ export const getLikedVideos = async () => {
 };
 
 export const toggleTweetLike = async (tweetId) => {
-  const res = await apiClient.post(`/likes/toggle/t/${tweetId}`);
+  const res = await apiClient.post(`/likes/toggle/t/${getResourceId(tweetId, "post")}`);
   return res.data?.data;
 };
 
@@ -135,7 +143,7 @@ export const deleteTweet = async (tweetId) => {
 };
 
 export const addTweetReply = async (tweetId, content) => {
-  const res = await apiClient.post(`/tweets/reply/${tweetId}`, { content });
+  const res = await apiClient.post(`/tweets/reply/${getResourceId(tweetId, "post")}`, { content });
   return res.data?.data;
 };
 
@@ -145,7 +153,7 @@ export const getComments = async (videoId) => {
 };
 
 export const addComment = async (videoId, content) => {
-  const res = await apiClient.post(`/comments/${videoId}`, { content });
+  const res = await apiClient.post(`/comments/${getResourceId(videoId, "video")}`, { content });
   return res.data?.data;
 };
 
@@ -165,7 +173,9 @@ export const getSavedVideos = async () => {
 };
 
 export const toggleSavedVideo = async (videoId) => {
-  const res = await apiClient.patch(`/users/saved-videos/${videoId}`);
+  const res = await apiClient.patch(
+    `/users/saved-videos/${getResourceId(videoId, "video")}`,
+  );
   return res.data?.data;
 };
 
@@ -225,7 +235,7 @@ export const getChannelVideos = async () => {
 };
 
 export const getTweetById = async (tweetId) => {
-  const res = await apiClient.get(`/tweets/post/${tweetId}`);
+  const res = await apiClient.get(`/tweets/post/${getResourceId(tweetId, "post")}`);
   return res.data?.data;
 };
 

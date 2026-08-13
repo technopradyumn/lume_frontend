@@ -21,25 +21,31 @@ export function CommunityPage() {
 
   const loadTweets = async () => {
     setIsLoading(true);
-    const data = await getTweets();
-    setTweets(data);
-    setIsLoading(false);
+    try {
+      const data = await getTweets();
+      setTweets(data);
+    } catch (error) {
+      console.error("Failed to load community posts:", error);
+      setTweets([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCreateTweet = async (content, imageFile) => {
     const newTweet = await createTweet(content, imageFile);
-    setTweets([newTweet, ...tweets]);
+    setTweets((current) => [newTweet, ...current]);
   };
 
   const handleLike = async (tweetId) => {
-    await toggleTweetLike(tweetId);
-    setTweets(
-      tweets.map((t) =>
+    const result = await toggleTweetLike(tweetId);
+    setTweets((current) =>
+      current.map((t) =>
         t._id === tweetId
           ? {
-              ...t,
-              isLiked: !t.isLiked,
-              likesCount: t.likesCount + (t.isLiked ? -1 : 1),
+            ...t,
+              isLiked: result?.isLiked ?? !t.isLiked,
+              likesCount: Math.max(0, (t.likesCount || 0) + (t.isLiked ? -1 : 1)),
             }
           : t,
       ),
@@ -48,11 +54,11 @@ export function CommunityPage() {
 
   const handleDelete = async (tweetId) => {
     await deleteTweet(tweetId);
-    setTweets(tweets.filter((t) => t._id !== tweetId));
+    setTweets((current) => current.filter((t) => t._id !== tweetId));
   };
 
   const handleAddReply = (tweetId, updatedTweet) => {
-    setTweets(tweets.map((t) => (t._id === tweetId ? updatedTweet : t)));
+    setTweets((current) => current.map((t) => (t._id === tweetId ? updatedTweet : t)));
   };
 
   return (

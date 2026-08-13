@@ -41,15 +41,16 @@ export function TweetDetailPage() {
   }, [tweetId]);
 
   const handleLike = async (id) => {
-    await toggleTweetLike(id);
-    setTweet(
-      (current) =>
-        current && {
-          ...current,
-          isLiked: !current.isLiked,
-          likesCount: (current.likesCount || 0) + (current.isLiked ? -1 : 1),
-        },
-    );
+    try {
+      const result = await toggleTweetLike(id);
+      setTweet((current) => current && ({
+        ...current,
+        isLiked: result?.isLiked ?? !current.isLiked,
+        likesCount: Math.max(0, (current.likesCount || 0) + (current.isLiked ? -1 : 1)),
+      }));
+    } catch (error) {
+      console.error("Failed to like post:", error);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -81,7 +82,7 @@ export function TweetDetailPage() {
               tweet={tweet}
               onLike={handleLike}
               onDelete={handleDelete}
-              onAddReply={setTweet}
+              onAddReply={(_, updatedTweet) => setTweet(updatedTweet)}
               detailView
             />
           </section>

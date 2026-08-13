@@ -29,6 +29,7 @@ export function VideoPlayerPage() {
   const [comments, setComments] = useState([]);
   const [recommended, setRecommended] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [hasCountedView, setHasCountedView] = useState(false);
   const [savedVideo, setSavedVideo] = useState(false);
   const shareMenu = useAnimatedToggle();
@@ -37,7 +38,7 @@ export function VideoPlayerPage() {
   useEffect(() => {
     setHasCountedView(false);
     loadVideoData();
-  }, [videoId]);
+  }, [videoId, user?._id]);
 
   const showToast = (msg) => {
     setToast({ message: msg, visible: true });
@@ -46,13 +47,21 @@ export function VideoPlayerPage() {
 
   const loadVideoData = async () => {
     setIsLoading(true);
+    setLoadError("");
     try {
-      const [vid, coms, allVids, savedVideos] = await Promise.all([
-        getVideoById(videoId).catch(() => null),
-        getComments(videoId).catch(() => []),
-        getVideos().catch(() => []),
-        user?._id ? getSavedVideos().catch(() => []) : [],
+      const [videoResult, commentsResult, videosResult, savedResult] = await Promise.allSettled([
+        getVideoById(videoId),
+        getComments(videoId),
+        getVideos(),
+        user?._id ? getSavedVideos() : Promise.resolve([]),
       ]);
+      if (videoResult.status === "rejected") {
+        throw videoResult.reason;
+      }
+      const vid = videoResult.value;
+      const coms = commentsResult.status === "fulfilled" ? commentsResult.value : [];
+      const allVids = videosResult.status === "fulfilled" ? videosResult.value : [];
+      const savedVideos = savedResult.status === "fulfilled" ? savedResult.value : [];
       setVideo(vid);
       setComments(coms || []);
       setRecommended(
@@ -61,6 +70,8 @@ export function VideoPlayerPage() {
       setSavedVideo(savedVideos.some((saved) => saved?._id === videoId));
     } catch (err) {
       console.error("Error loading video data:", err);
+      setVideo(null);
+      setLoadError(err?.response?.data?.message || "Unable to load this video. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +150,7 @@ export function VideoPlayerPage() {
     setComments([newComment, ...comments]);
   };
 
-  if (isLoading || !video) {
+  if (isLoading) {
     return (
       <div className="page-container">
         <div
@@ -150,6 +161,18 @@ export function VideoPlayerPage() {
             marginBottom: "var(--space-6)",
           }}
         />
+      </div>
+    );
+  }
+
+  if (!video) {
+    return (
+      <div className="page-container">
+        <div className="empty-state">
+          <h2>Video unavailable</h2>
+          <p>{loadError || "This video could not be found."}</p>
+          <button className="btn btn--primary" onClick={loadVideoData}>Try again</button>
+        </div>
       </div>
     );
   }
