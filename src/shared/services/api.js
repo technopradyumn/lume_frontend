@@ -10,6 +10,19 @@ const getResourceId = (resource, label = "resource") => {
 };
 
 const API_BASE_URL = "/api/v1";
+const responseCache = new Map();
+
+const cached = async (key, request) => {
+  if (responseCache.has(key)) return responseCache.get(key);
+  const pending = request().catch((error) => {
+    responseCache.delete(key);
+    throw error;
+  });
+  responseCache.set(key, pending);
+  return pending;
+};
+
+export const clearApiCache = () => responseCache.clear();
 const UPLOAD_API_BASE_URL =
   import.meta.env.VITE_UPLOAD_API_BASE_URL ||
   "https://lume-backend-cggh.onrender.com/api/v1";
@@ -68,8 +81,10 @@ export const getVideos = async (query = "", category = "", userId = "") => {
   if (query) params.query = query;
   if (category) params.category = category;
   if (userId) params.userId = getResourceId(userId, "user");
-  const res = await apiClient.get("/videos", { params });
-  return res.data?.data || [];
+  return cached(`videos:${JSON.stringify(params)}`, async () => {
+    const res = await apiClient.get("/videos", { params });
+    return res.data?.data || [];
+  });
 };
 
 export const getVideoById = async (id) => {
@@ -123,8 +138,10 @@ export const toggleTweetLike = async (tweetId) => {
 
 export const getTweets = async (userId) => {
   const url = userId ? `/tweets/user/${getResourceId(userId, "user")}` : "/tweets";
-  const res = await apiClient.get(url);
-  return res.data?.data || [];
+  return cached(`tweets:${url}`, async () => {
+    const res = await apiClient.get(url);
+    return res.data?.data || [];
+  });
 };
 
 export const createTweet = async (content, imageFile) => {
@@ -135,6 +152,7 @@ export const createTweet = async (content, imageFile) => {
   const res = await uploadApiClient.post("/tweets", fd, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+  clearApiCache();
   return res.data?.data;
 };
 
@@ -145,6 +163,7 @@ export const deleteTweet = async (tweetId) => {
 
 export const addTweetReply = async (tweetId, content) => {
   const res = await apiClient.post(`/tweets/reply/${getResourceId(tweetId, "post")}`, { content });
+  clearApiCache();
   return res.data?.data;
 };
 
@@ -165,6 +184,7 @@ export const getSubscribedChannels = async (subscriberId) => {
 
 export const toggleSubscription = async (channelId) => {
   const res = await apiClient.post(`/subscriptions/toggle/${getResourceId(channelId, "channel")}`);
+  clearApiCache();
   return res.data?.data;
 };
 

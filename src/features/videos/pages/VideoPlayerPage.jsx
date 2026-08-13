@@ -98,16 +98,18 @@ export function VideoPlayerPage() {
       showToast("Please login to subscribe");
       return;
     }
+    const previous = video;
+    const nextSubscribed = !video.owner?.isSubscribed;
+    setVideo((current) => ({ ...current, owner: { ...current.owner, isSubscribed: nextSubscribed, subscribersCount: Math.max(0, (current.owner.subscribersCount || 0) + (nextSubscribed ? 1 : -1)) } }));
     try {
       const result = await toggleSubscription(video.owner?._id);
       if (result) {
-        const change = result.isSubscribed ? 1 : -1;
         setVideo({
           ...video,
           owner: {
             ...video.owner,
             isSubscribed: result.isSubscribed,
-            subscribersCount: (video.owner.subscribersCount || 0) + change,
+            subscribersCount: Math.max(0, (video.owner.subscribersCount || 0) + (result.isSubscribed ? 1 : -1)),
           },
         });
         showToast(
@@ -117,6 +119,7 @@ export function VideoPlayerPage() {
         );
       }
     } catch (err) {
+      setVideo(previous);
       console.error(err);
       showToast("Failed to toggle subscription");
     }
@@ -136,18 +139,27 @@ export function VideoPlayerPage() {
   };
 
   const handleLike = async () => {
-    const updated = await toggleVideoLike(videoId);
-    if (updated)
-      setVideo({
-        ...video,
-        isLiked: updated.isLiked,
-        likesCount: updated.likesCount,
-      });
+    const previous = video;
+    setVideo((current) => ({ ...current, isLiked: !current.isLiked, likesCount: Math.max(0, (current.likesCount || 0) + (current.isLiked ? -1 : 1)) }));
+    try {
+      const updated = await toggleVideoLike(videoId);
+      if (updated) setVideo((current) => ({ ...current, isLiked: updated.isLiked, likesCount: updated.likesCount }));
+    } catch {
+      setVideo(previous);
+      showToast("Failed to update like");
+    }
   };
 
   const handleAddComment = async (vid, content) => {
-    const newComment = await addComment(vid, content);
-    setComments([newComment, ...comments]);
+    const optimistic = { _id: `pending-${Date.now()}`, content, owner: user, createdAt: new Date().toISOString(), likesCount: 0, isLiked: false };
+    setComments((current) => [optimistic, ...current]);
+    try {
+      const newComment = await addComment(vid, content);
+      setComments((current) => current.map((comment) => comment._id === optimistic._id ? newComment : comment));
+    } catch {
+      setComments((current) => current.filter((comment) => comment._id !== optimistic._id));
+      showToast("Failed to post comment");
+    }
   };
 
   if (isLoading) {

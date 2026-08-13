@@ -64,17 +64,20 @@ export function TweetCard({
     e.stopPropagation();
     if (!user || isOwner || subLoading) return;
     setSubLoading(true);
+    const wasSubscribed = isSubscribed;
+    setIsSubscribed(!wasSubscribed);
+    setSubscribersCount((count) => Math.max(0, count + (wasSubscribed ? -1 : 1)));
     try {
-      await toggleSubscription(tweet.owner._id);
-      const wasSubscribed = isSubscribed;
-      setIsSubscribed(!wasSubscribed);
-      setSubscribersCount((c) => (wasSubscribed ? c - 1 : c + 1));
+      const result = await toggleSubscription(tweet.owner._id);
+      if (typeof result?.isSubscribed === "boolean") setIsSubscribed(result.isSubscribed);
       showToast(
         wasSubscribed
           ? `Unsubscribed from ${tweet.owner?.fullName}`
           : `Subscribed to ${tweet.owner?.fullName}!`,
       );
     } catch (err) {
+      setIsSubscribed(wasSubscribed);
+      setSubscribersCount((count) => Math.max(0, count + (wasSubscribed ? 1 : -1)));
       console.error("Toggle subscription failed:", err);
     } finally {
       setSubLoading(false);

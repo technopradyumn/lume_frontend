@@ -26,10 +26,13 @@ import { HistoryPage } from "./features/videos/pages/HistoryPage";
 import { DashboardPage } from "./features/dashboard/pages/DashboardPage";
 import { SettingsPage } from "./features/dashboard/pages/SettingsPage";
 import { SearchResultsPage } from "./features/videos/pages/SearchResultsPage";
+import { PullToRefresh } from "./shared/components/PullToRefresh";
+import { clearApiCache } from "./shared/services/api";
 
 function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const toggleSidebar = () =>
     window.innerWidth <= 768
       ? setMobileMenuOpen((open) => !open)
@@ -50,7 +53,8 @@ function AppLayout() {
       <main
         className={`main-content ${sidebarCollapsed ? "main-content--sidebar-collapsed" : ""}`}
       >
-        <Routes>
+        <PullToRefresh onRefresh={async () => { clearApiCache(); setRefreshKey((key) => key + 1); }}>
+        <Routes key={refreshKey}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/watch/:videoId" element={<VideoPlayerPage />} />
@@ -68,6 +72,7 @@ function AppLayout() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/search" element={<SearchResultsPage />} />
         </Routes>
+        </PullToRefresh>
       </main>
       <BottomNav />
     </div>
