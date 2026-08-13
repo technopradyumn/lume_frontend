@@ -11,7 +11,20 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+const uploadApiClient = axios.create({
+  baseURL: UPLOAD_API_BASE_URL,
+  withCredentials: false,
+});
+
 apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('lume_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+uploadApiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('lume_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -25,7 +38,7 @@ export const loginUser = async (credentials) => {
 };
 
 export const registerUser = async (formData) => {
-  const res = await apiClient.post(`${UPLOAD_API_BASE_URL}/users/register`, formData, {
+  const res = await uploadApiClient.post('/users/register', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data?.data;
@@ -68,7 +81,7 @@ export const createVideo = async (videoData) => {
   if (videoData.videoFile) fd.append('videoFile', videoData.videoFile);
   if (videoData.thumbnailFile) fd.append('thumbnail', videoData.thumbnailFile);
 
-  const res = await apiClient.post(`${UPLOAD_API_BASE_URL}/videos`, fd, {
+  const res = await uploadApiClient.post('/videos', fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data?.data;
@@ -110,7 +123,7 @@ export const createTweet = async (content, imageFile) => {
   fd.append('content', content);
   if (imageFile) fd.append('image', imageFile);
 
-  const res = await apiClient.post(`${UPLOAD_API_BASE_URL}/tweets`, fd, {
+  const res = await uploadApiClient.post('/tweets', fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data?.data;
@@ -164,7 +177,7 @@ export const getUserChannelProfile = async (username) => {
 export const updateUserAvatar = async (avatarFile) => {
   const fd = new FormData();
   fd.append('avatar', avatarFile);
-  const res = await apiClient.patch(`${UPLOAD_API_BASE_URL}/users/avatar`, fd, {
+  const res = await uploadApiClient.patch('/users/avatar', fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data?.data;
