@@ -59,11 +59,13 @@ export function VideoCard({ video, index = 0 }) {
     }
 
     setIsSaving(true);
+    const previous = isSaved;
+    setIsSaved(!previous);
     try {
-      const result = await toggleSavedVideo(video._id);
-      setIsSaved(Boolean(result?.isSaved));
-      showToast(result?.isSaved ? "Saved to Watch Later" : "Removed from Watch Later");
+      await toggleSavedVideo(video._id);
+      showToast(!previous ? "Saved to Watch Later" : "Removed from Watch Later");
     } catch (error) {
+      setIsSaved(previous);
       showToast(error?.response?.data?.message || "Unable to save video.");
     } finally {
       setIsSaving(false);

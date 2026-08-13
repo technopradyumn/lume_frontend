@@ -41,14 +41,16 @@ export function TweetDetailPage() {
   }, [tweetId]);
 
   const handleLike = async (id) => {
+    const previous = tweet;
+    setTweet((current) => current && ({
+      ...current,
+      isLiked: !current.isLiked,
+      likesCount: Math.max(0, (current.likesCount || 0) + (current.isLiked ? -1 : 1)),
+    }));
     try {
-      const result = await toggleTweetLike(id);
-      setTweet((current) => current && ({
-        ...current,
-        isLiked: result?.isLiked ?? !current.isLiked,
-        likesCount: Math.max(0, (current.likesCount || 0) + (current.isLiked ? -1 : 1)),
-      }));
+      await toggleTweetLike(id);
     } catch (error) {
+      setTweet(previous);
       console.error("Failed to like post:", error);
     }
   };

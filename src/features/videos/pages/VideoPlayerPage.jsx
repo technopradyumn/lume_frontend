@@ -83,11 +83,13 @@ export function VideoPlayerPage() {
       return;
     }
 
+    const previous = savedVideo;
+    setSavedVideo(!previous);
     try {
-      const result = await toggleSavedVideo(videoId);
-      setSavedVideo(result?.isSaved ?? !savedVideo);
-      showToast(result?.isSaved ? "Saved to Watch Later" : "Removed from Watch Later");
+      await toggleSavedVideo(videoId);
+      showToast(!previous ? "Saved to Watch Later" : "Removed from Watch Later");
     } catch (err) {
+      setSavedVideo(previous);
       console.error(err);
       showToast("Failed to update saved videos");
     }
@@ -102,22 +104,8 @@ export function VideoPlayerPage() {
     const nextSubscribed = !video.owner?.isSubscribed;
     setVideo((current) => ({ ...current, owner: { ...current.owner, isSubscribed: nextSubscribed, subscribersCount: Math.max(0, (current.owner.subscribersCount || 0) + (nextSubscribed ? 1 : -1)) } }));
     try {
-      const result = await toggleSubscription(video.owner?._id);
-      if (result) {
-        setVideo({
-          ...video,
-          owner: {
-            ...video.owner,
-            isSubscribed: result.isSubscribed,
-            subscribersCount: Math.max(0, (video.owner.subscribersCount || 0) + (result.isSubscribed ? 1 : -1)),
-          },
-        });
-        showToast(
-          result.isSubscribed
-            ? "Subscribed to channel!"
-            : "Unsubscribed from channel.",
-        );
-      }
+      await toggleSubscription(video.owner?._id);
+      showToast(nextSubscribed ? "Subscribed to channel!" : "Unsubscribed from channel.");
     } catch (err) {
       setVideo(previous);
       console.error(err);
@@ -142,8 +130,7 @@ export function VideoPlayerPage() {
     const previous = video;
     setVideo((current) => ({ ...current, isLiked: !current.isLiked, likesCount: Math.max(0, (current.likesCount || 0) + (current.isLiked ? -1 : 1)) }));
     try {
-      const updated = await toggleVideoLike(videoId);
-      if (updated) setVideo((current) => ({ ...current, isLiked: updated.isLiked, likesCount: updated.likesCount }));
+      await toggleVideoLike(videoId);
     } catch {
       setVideo(previous);
       showToast("Failed to update like");

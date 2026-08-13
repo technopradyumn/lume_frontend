@@ -68,8 +68,7 @@ export function TweetCard({
     setIsSubscribed(!wasSubscribed);
     setSubscribersCount((count) => Math.max(0, count + (wasSubscribed ? -1 : 1)));
     try {
-      const result = await toggleSubscription(tweet.owner._id);
-      if (typeof result?.isSubscribed === "boolean") setIsSubscribed(result.isSubscribed);
+      await toggleSubscription(tweet.owner._id);
       showToast(
         wasSubscribed
           ? `Unsubscribed from ${tweet.owner?.fullName}`
