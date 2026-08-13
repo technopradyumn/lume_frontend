@@ -1,6 +1,9 @@
 import axios from 'axios';
 
 const API_BASE_URL = '/api/v1';
+const UPLOAD_API_BASE_URL =
+  import.meta.env.VITE_UPLOAD_API_BASE_URL ||
+  'https://lume-backend-cggh.onrender.com/api/v1';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -22,7 +25,7 @@ export const loginUser = async (credentials) => {
 };
 
 export const registerUser = async (formData) => {
-  const res = await apiClient.post('/users/register', formData, {
+  const res = await apiClient.post(`${UPLOAD_API_BASE_URL}/users/register`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data?.data;
@@ -65,7 +68,7 @@ export const createVideo = async (videoData) => {
   if (videoData.videoFile) fd.append('videoFile', videoData.videoFile);
   if (videoData.thumbnailFile) fd.append('thumbnail', videoData.thumbnailFile);
 
-  const res = await apiClient.post('/videos', fd, {
+  const res = await apiClient.post(`${UPLOAD_API_BASE_URL}/videos`, fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data?.data;
@@ -107,7 +110,7 @@ export const createTweet = async (content, imageFile) => {
   fd.append('content', content);
   if (imageFile) fd.append('image', imageFile);
 
-  const res = await apiClient.post('/tweets', fd, {
+  const res = await apiClient.post(`${UPLOAD_API_BASE_URL}/tweets`, fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data?.data;
@@ -161,7 +164,7 @@ export const getUserChannelProfile = async (username) => {
 export const updateUserAvatar = async (avatarFile) => {
   const fd = new FormData();
   fd.append('avatar', avatarFile);
-  const res = await apiClient.patch('/users/avatar', fd, {
+  const res = await apiClient.patch(`${UPLOAD_API_BASE_URL}/users/avatar`, fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data?.data;
