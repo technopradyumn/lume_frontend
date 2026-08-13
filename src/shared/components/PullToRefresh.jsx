@@ -16,15 +16,32 @@ export function PullToRefresh({ children, onRefresh }) {
     }
   };
 
+  const startPull = (clientY, scrollTop) => {
+    if (scrollTop === 0) startY.current = clientY;
+  };
+
+  const movePull = (clientY, scrollTop) => {
+    const next = clientY - startY.current;
+    if (startY.current && next > 0 && scrollTop === 0) {
+      setDistance(Math.min(next * 0.45, 100));
+    }
+  };
+
   return (
     <div
       className="content-scroll"
-      onTouchStart={(event) => { if (event.currentTarget.scrollTop === 0) startY.current = event.touches[0].clientY; }}
+      onTouchStart={(event) => startPull(event.touches[0].clientY, event.currentTarget.scrollTop)}
       onTouchMove={(event) => {
-        const next = event.touches[0].clientY - startY.current;
-        if (startY.current && next > 0 && event.currentTarget.scrollTop === 0) setDistance(Math.min(next * 0.45, 100));
+        movePull(event.touches[0].clientY, event.currentTarget.scrollTop);
       }}
-      onTouchEnd={finishRefresh}
+      onTouchEnd={() => { startY.current = 0; finishRefresh(); }}
+      onPointerDown={(event) => {
+        if (event.pointerType === "mouse" && event.button === 0) startPull(event.clientY, event.currentTarget.scrollTop);
+      }}
+      onPointerMove={(event) => {
+        if (event.pointerType === "mouse" && event.buttons === 1) movePull(event.clientY, event.currentTarget.scrollTop);
+      }}
+      onPointerUp={() => { startY.current = 0; finishRefresh(); }}
       style={{ overflowY: "auto", height: "100%", overscrollBehavior: "contain" }}
     >
       {(distance > 0 || refreshing) && <div style={{ height: distance, display: "grid", placeItems: "center", color: "var(--text-secondary)", fontSize: 12 }}>{refreshing ? "Refreshing…" : distance >= 70 ? "Release to refresh" : "Pull to refresh"}</div>}
