@@ -48,14 +48,19 @@ export function ChannelPage() {
   };
 
   const handleSubscribe = async () => {
-    await toggleSubscription(channel?._id);
-    setChannel({ ...channel, isSubscribed: !channel?.isSubscribed });
+    const previous = channel;
+    setChannel((current) => ({ ...current, isSubscribed: !current.isSubscribed, subscribersCount: Math.max(0, (current.subscribersCount || 0) + (current.isSubscribed ? -1 : 1)) }));
+    try {
+      await toggleSubscription(channel?._id);
+    } catch {
+      setChannel(previous);
+    }
   };
 
   const handleLikeTweet = async (tweetId) => {
-    await toggleTweetLike(tweetId);
-    setTweets(
-      tweets.map((t) =>
+    const previous = tweets;
+    setTweets((current) =>
+      current.map((t) =>
         t._id === tweetId
           ? {
               ...t,
@@ -65,6 +70,11 @@ export function ChannelPage() {
           : t,
       ),
     );
+    try {
+      await toggleTweetLike(tweetId);
+    } catch {
+      setTweets(previous);
+    }
   };
 
   const handleAddReply = (tweetId, updatedTweet) => {

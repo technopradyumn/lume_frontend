@@ -114,15 +114,15 @@ export function VideoPlayerPage() {
   };
 
   const handleToggleCommentLike = async (commentId) => {
-    const updated = await toggleCommentLike(commentId);
-    if (updated) {
-      setComments(
-        comments.map((c) =>
-          c._id === commentId
-            ? { ...c, isLiked: updated.isLiked, likesCount: updated.likesCount }
-            : c,
-        ),
-      );
+    const previous = comments;
+    setComments((current) => current.map((comment) => comment._id === commentId
+      ? { ...comment, isLiked: !comment.isLiked, likesCount: Math.max(0, (comment.likesCount || 0) + (comment.isLiked ? -1 : 1)) }
+      : comment));
+    try {
+      await toggleCommentLike(commentId);
+    } catch {
+      setComments(previous);
+      showToast("Could not update comment like. Please try again.");
     }
   };
 
@@ -142,7 +142,9 @@ export function VideoPlayerPage() {
     setComments((current) => [optimistic, ...current]);
     try {
       const newComment = await addComment(vid, content);
-      setComments((current) => current.map((comment) => comment._id === optimistic._id ? newComment : comment));
+      setComments((current) => current.map((comment) => comment._id === optimistic._id
+        ? { ...comment, _id: newComment._id }
+        : comment));
     } catch {
       setComments((current) => current.filter((comment) => comment._id !== optimistic._id));
       showToast("Failed to post comment");
