@@ -211,8 +211,10 @@ export const toggleSavedVideo = async (videoId) => {
 };
 
 export const getNotifications = async () => {
-  const res = await apiClient.get("/notifications");
-  return res.data?.data || [];
+  return cached("notifications", async () => {
+    const res = await apiClient.get("/notifications");
+    return res.data?.data || [];
+  });
 };
 
 export const markNotificationsAsRead = async () => {

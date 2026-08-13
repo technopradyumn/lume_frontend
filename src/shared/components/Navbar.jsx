@@ -38,6 +38,7 @@ export function Navbar({ sidebarCollapsed, onToggleSidebar }) {
     try {
       const data = await getNotifications();
       setNotifications(data);
+      sessionStorage.setItem("lume_notifications", JSON.stringify(data));
       setUnreadCount(data.filter((n) => !n.isRead).length);
     } catch (error) {
       console.error(error);
