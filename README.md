@@ -33,7 +33,7 @@ src/
 `-- main.jsx        # React entry point
 ```
 
-The authentication context verifies the current user before protected routes render. Axios attaches the saved access token to authenticated requests, while Vite forwards `/api` calls to the Lume backend during local development.
+The authentication context verifies the current user before protected routes render. Axios attaches the saved access token to authenticated requests. Vite forwards `/api` calls to the deployed Lume backend during local development, while Vercel uses its production rewrite.
 
 For production uploads, set `VITE_UPLOAD_API_BASE_URL` to the deployed backend API base URL. Video files, images, avatars, and registration uploads bypass the frontend reverse proxy so multipart request bodies do not encounter proxy request-size limits.
 

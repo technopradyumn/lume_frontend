@@ -8,7 +8,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://lume-backend-cggh.onrender.com',
         changeOrigin: true,
         secure: false,
       }
