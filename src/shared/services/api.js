@@ -1,8 +1,9 @@
 import axios from "axios";
 
 const getResourceId = (resource, label = "resource") => {
-  const id = typeof resource === "object" ? resource?._id || resource?.id : resource;
-  if (!id || typeof id !== "string") {
+  const candidate = typeof resource === "object" ? resource?._id || resource?.id || resource?.$oid : resource;
+  const id = typeof candidate === "object" ? candidate?.$oid || candidate?.id : candidate;
+  if (!id || typeof id !== "string" || id === "[object Object]") {
     throw new Error(`A valid ${label} id is required`);
   }
   return id;
@@ -66,7 +67,7 @@ export const getVideos = async (query = "", category = "", userId = "") => {
   const params = {};
   if (query) params.query = query;
   if (category) params.category = category;
-  if (userId) params.userId = userId;
+  if (userId) params.userId = getResourceId(userId, "user");
   const res = await apiClient.get("/videos", { params });
   return res.data?.data || [];
 };
@@ -77,7 +78,7 @@ export const getVideoById = async (id) => {
 };
 
 export const incrementVideoViews = async (id) => {
-  const res = await apiClient.patch(`/videos/views/${id}`);
+  const res = await apiClient.patch(`/videos/views/${getResourceId(id, "video")}`);
   return res.data?.data;
 };
 
@@ -96,7 +97,7 @@ export const createVideo = async (videoData) => {
 };
 
 export const deleteVideo = async (videoId) => {
-  const res = await apiClient.delete(`/videos/${videoId}`);
+  const res = await apiClient.delete(`/videos/${getResourceId(videoId, "video")}`);
   return res.data;
 };
 
@@ -121,7 +122,7 @@ export const toggleTweetLike = async (tweetId) => {
 };
 
 export const getTweets = async (userId) => {
-  const url = userId ? `/tweets/user/${userId}` : "/tweets";
+  const url = userId ? `/tweets/user/${getResourceId(userId, "user")}` : "/tweets";
   const res = await apiClient.get(url);
   return res.data?.data || [];
 };
@@ -138,7 +139,7 @@ export const createTweet = async (content, imageFile) => {
 };
 
 export const deleteTweet = async (tweetId) => {
-  const res = await apiClient.delete(`/tweets/${tweetId}`);
+  const res = await apiClient.delete(`/tweets/${getResourceId(tweetId, "post")}`);
   return res.data;
 };
 
@@ -148,7 +149,7 @@ export const addTweetReply = async (tweetId, content) => {
 };
 
 export const getComments = async (videoId) => {
-  const res = await apiClient.get(`/comments/${videoId}`);
+  const res = await apiClient.get(`/comments/${getResourceId(videoId, "video")}`);
   return res.data?.data || [];
 };
 
@@ -158,12 +159,12 @@ export const addComment = async (videoId, content) => {
 };
 
 export const getSubscribedChannels = async (subscriberId) => {
-  const res = await apiClient.get(`/subscriptions/c/${subscriberId}`);
+  const res = await apiClient.get(`/subscriptions/c/${getResourceId(subscriberId, "user")}`);
   return res.data?.data || [];
 };
 
 export const toggleSubscription = async (channelId) => {
-  const res = await apiClient.post(`/subscriptions/toggle/${channelId}`);
+  const res = await apiClient.post(`/subscriptions/toggle/${getResourceId(channelId, "channel")}`);
   return res.data?.data;
 };
 
