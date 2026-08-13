@@ -35,6 +35,8 @@ src/
 
 The authentication context verifies the current user before protected routes render. Axios attaches the saved access token to authenticated requests, while Vite forwards `/api` calls to the Lume backend during local development.
 
+For production video uploads, set `VITE_UPLOAD_API_BASE_URL` to the deployed backend API base URL. Uploads bypass the frontend reverse proxy so multipart video files do not encounter proxy request-size limits.
+
 ## Run locally
 
 ### Prerequisites

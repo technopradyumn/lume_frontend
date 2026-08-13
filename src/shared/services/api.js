@@ -1,6 +1,9 @@
 import axios from "axios";
 
 const API_BASE_URL = "/api/v1";
+const UPLOAD_API_BASE_URL =
+  import.meta.env.VITE_UPLOAD_API_BASE_URL ||
+  "https://lume-backend-cggh.onrender.com/api/v1";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -65,7 +68,7 @@ export const createVideo = async (videoData) => {
   if (videoData.videoFile) fd.append("videoFile", videoData.videoFile);
   if (videoData.thumbnailFile) fd.append("thumbnail", videoData.thumbnailFile);
 
-  const res = await apiClient.post("/videos", fd, {
+  const res = await apiClient.post(`${UPLOAD_API_BASE_URL}/videos`, fd, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data?.data;
