@@ -54,6 +54,16 @@ uploadApiClient.interceptors.request.use((config) => {
   return config;
 });
 
+const friendlyError = (error) => {
+  const status = error?.response?.status;
+  const message = status === 401 ? "Please sign in to continue." : status === 403 ? "You do not have permission to do that." : status === 404 ? "That item is no longer available." : status >= 500 ? "Something went wrong. Please try again." : error?.response?.data?.message || "Unable to complete that action. Please try again.";
+  if (error?.response?.data) error.response.data.message = message;
+  return Promise.reject(error);
+};
+
+apiClient.interceptors.response.use((response) => response, friendlyError);
+uploadApiClient.interceptors.response.use((response) => response, friendlyError);
+
 export const loginUser = async (credentials) => {
   const res = await apiClient.post("/users/login", credentials);
   return res.data?.data;

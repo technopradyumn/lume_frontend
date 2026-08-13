@@ -26,6 +26,7 @@ import { HistoryPage } from "./features/videos/pages/HistoryPage";
 import { DashboardPage } from "./features/dashboard/pages/DashboardPage";
 import { SettingsPage } from "./features/dashboard/pages/SettingsPage";
 import { SearchResultsPage } from "./features/videos/pages/SearchResultsPage";
+import { NotificationsPage } from "./features/notifications/pages/NotificationsPage";
 import { PullToRefresh } from "./shared/components/PullToRefresh";
 import { clearApiCache } from "./shared/services/api";
 
@@ -74,6 +75,7 @@ function AppLayout() {
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/search" element={<SearchResultsPage />} />
         </Routes>
         </PullToRefresh>

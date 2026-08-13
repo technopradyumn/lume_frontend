@@ -45,6 +45,10 @@ export function Navbar({ sidebarCollapsed, onToggleSidebar }) {
   };
 
   const handleOpenNotifications = async () => {
+    if (window.innerWidth <= 768) {
+      navigate("/notifications");
+      return;
+    }
     notifMenu.toggle();
     if (!notifMenu.isOpen && unreadCount > 0) {
       await markNotificationsAsRead();
