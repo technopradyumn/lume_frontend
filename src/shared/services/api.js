@@ -25,7 +25,9 @@ const cached = async (key, request) => {
 export const clearApiCache = () => responseCache.clear();
 const UPLOAD_API_BASE_URL =
   import.meta.env.VITE_UPLOAD_API_BASE_URL ||
-  "https://lume-backend-cggh.onrender.com/api/v1";
+  (import.meta.env.DEV
+    ? API_BASE_URL
+    : "https://lume-backend-cggh.onrender.com/api/v1");
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -37,6 +39,8 @@ const uploadApiClient = axios.create({
   baseURL: UPLOAD_API_BASE_URL,
   withCredentials: false,
 });
+
+let refreshRequest = null;
 
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("lume_token");
@@ -61,7 +65,41 @@ const friendlyError = (error) => {
   return Promise.reject(error);
 };
 
-apiClient.interceptors.response.use((response) => response, friendlyError);
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const isAuthRequest = ["/users/login", "/users/register", "/users/refresh-token"].some(
+      (path) => originalRequest?.url?.includes(path),
+    );
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthRequest) {
+      originalRequest._retry = true;
+      try {
+        if (!refreshRequest) {
+          refreshRequest = axios
+            .post(`${API_BASE_URL}/users/refresh-token`, {}, { withCredentials: true })
+            .then((response) => response.data?.data?.accessToken)
+            .finally(() => {
+              refreshRequest = null;
+            });
+        }
+        const accessToken = await refreshRequest;
+        if (!accessToken) throw error;
+        localStorage.setItem("lume_token", accessToken);
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem("lume_token");
+        window.dispatchEvent(new Event("lume:session-expired"));
+        return friendlyError(refreshError);
+      }
+    }
+
+    return friendlyError(error);
+  },
+);
 uploadApiClient.interceptors.response.use((response) => response, friendlyError);
 
 export const loginUser = async (credentials) => {
@@ -95,6 +133,16 @@ export const getVideos = async (query = "", category = "", userId = "") => {
     const res = await apiClient.get("/videos", { params });
     return res.data?.data || [];
   });
+};
+
+export const searchContent = async (query, type = "all") => {
+  const res = await apiClient.get("/search", { params: { q: query, type } });
+  return res.data?.data || {
+    people: [],
+    videos: [],
+    posts: [],
+    counts: { all: 0, people: 0, videos: 0, posts: 0 },
+  };
 };
 
 export const getVideoById = async (id) => {

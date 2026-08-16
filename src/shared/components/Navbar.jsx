@@ -73,7 +73,8 @@ export function Navbar({ sidebarCollapsed, onToggleSidebar }) {
         if (
           parsed.origin === window.location.origin &&
           (/^\/watch\/[^/]+$/.test(parsed.pathname) ||
-            /^\/community\/post\/[^/]+$/.test(parsed.pathname))
+            /^\/community\/post\/[^/]+$/.test(parsed.pathname) ||
+            /^\/channel\/[^/]+$/.test(parsed.pathname))
         ) {
           navigate(`${parsed.pathname}${parsed.search}`);
           return;
@@ -109,7 +110,7 @@ export function Navbar({ sidebarCollapsed, onToggleSidebar }) {
         <input
           className="navbar__search-input"
           type="text"
-          placeholder="Search videos, channels, topics..."
+          placeholder="Search people, videos, creators, posts..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -175,10 +176,6 @@ export function Navbar({ sidebarCollapsed, onToggleSidebar }) {
                     <div
                       key={notif._id}
                       className="dropdown__item"
-                      onClick={() => {
-                        notifMenu.close();
-                        if (notif.link) navigate(notif.link);
-                      }}
                       style={{
                         display: "flex",
                         alignItems: "flex-start",
@@ -189,8 +186,17 @@ export function Navbar({ sidebarCollapsed, onToggleSidebar }) {
                         borderBottom: "1px solid var(--border-default)",
                       }}
                     >
-                      <UserAvatar user={notif.sender} size="sm" noLink />
-                      <div style={{ flex: 1 }}>
+                      <span onClickCapture={notifMenu.close}>
+                        <UserAvatar user={notif.sender} size="sm" />
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          notifMenu.close();
+                          if (notif.link) navigate(notif.link);
+                        }}
+                        style={{ flex: 1, minWidth: 0, textAlign: "left", color: "inherit" }}
+                      >
                         <div style={{ fontSize: "var(--font-size-sm)" }}>
                           {notif.message}
                         </div>
@@ -203,7 +209,7 @@ export function Navbar({ sidebarCollapsed, onToggleSidebar }) {
                         >
                           {timeAgo(notif.createdAt)}
                         </div>
-                      </div>
+                      </button>
                     </div>
                   ))
                 ) : (

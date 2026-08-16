@@ -20,6 +20,7 @@ import { ArrowLeft, ThumbsUp, Share2, BookmarkPlus, BookmarkX } from "lucide-rea
 import { useAuth } from "../../../shared/context/AuthContext";
 import { useAnimatedToggle } from "../../../shared/hooks/useAnimatedToggle";
 import { ShareMenu } from "../../../shared/components/ShareMenu";
+import { useRef } from "react";
 
 export function VideoPlayerPage() {
   const { videoId } = useParams();
@@ -33,6 +34,7 @@ export function VideoPlayerPage() {
   const [hasCountedView, setHasCountedView] = useState(false);
   const [savedVideo, setSavedVideo] = useState(false);
   const shareMenu = useAnimatedToggle();
+  const shareTriggerRef = useRef(null);
   const [toast, setToast] = useState({ message: "", visible: false });
 
   useEffect(() => {
@@ -245,6 +247,7 @@ export function VideoPlayerPage() {
                 <Link
                   to={`/channel/${video.owner?.username}`}
                   className="player-info__channel"
+                  onClick={(event) => event.stopPropagation()}
                 >
                   <UserAvatar user={video.owner} size="lg" noLink />
                   <div>
@@ -267,9 +270,10 @@ export function VideoPlayerPage() {
                     </div>
                   </div>
                 </Link>
-                {user?._id !== video.owner?._id && (
+                {(!user?._id || String(user._id) !== String(video.owner?._id)) && (
                   <button
-                    className={`btn btn--sm ${video.owner?.isSubscribed ? "btn--secondary" : "btn--primary"}`}
+                    type="button"
+                    className={`btn btn--sm player-info__subscribe ${video.owner?.isSubscribed ? "btn--secondary" : "btn--primary"}`}
                     onClick={handleSubscribe}
                     style={{ height: 32, padding: "0 var(--space-4)" }}
                   >
@@ -294,6 +298,8 @@ export function VideoPlayerPage() {
                 </button>
                 <div style={{ position: "relative" }}>
                   <button
+                    ref={shareTriggerRef}
+                    type="button"
                     className="btn btn--sm btn--secondary"
                     onClick={shareMenu.toggle}
                   >
@@ -305,7 +311,7 @@ export function VideoPlayerPage() {
                     onClose={shareMenu.close}
                     url={window.location.href}
                     onShared={showToast}
-                    align="right"
+                    anchorRef={shareTriggerRef}
                   />
                 </div>
                 <button

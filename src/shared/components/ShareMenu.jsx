@@ -1,5 +1,6 @@
 import React from "react";
 import { Facebook, Link2, Send, Twitter } from "lucide-react";
+import { AnchoredPopup } from "./AnchoredPopup";
 
 const SHARE_OPTIONS = [
   { label: "Copy Link", icon: Link2 },
@@ -14,7 +15,7 @@ export function ShareMenu({
   onClose,
   url,
   onShared,
-  align = "left",
+  anchorRef,
 }) {
   if (!isOpen) return null;
 
@@ -41,33 +42,28 @@ export function ShareMenu({
   };
 
   return (
-    <>
-      <div className="popup-backdrop" aria-hidden="true" onClick={onClose} />
-      <div
-        className={`dropdown popup-menu ${isClosing ? "dropdown--closing" : ""}`}
-        role="menu"
-        aria-label="Share options"
-        style={{
-          bottom: "100%",
-          top: "auto",
-          marginBottom: "var(--space-2)",
-          minWidth: 200,
-          [align]: 0,
-          transformOrigin: `bottom ${align}`,
-        }}
-      >
-        <div className="share-menu__label">Share to</div>
-        {SHARE_OPTIONS.map(({ label, icon: Icon }) => (
-          <button
-            key={label}
-            type="button"
-            className="dropdown__item"
-            onClick={() => share(label)}
-          >
-            <Icon size={15} /> {label}
-          </button>
-        ))}
-      </div>
-    </>
+    <AnchoredPopup
+      isOpen={isOpen}
+      isClosing={isClosing}
+      onClose={onClose}
+      anchorRef={anchorRef}
+      className="share-menu"
+      ariaLabel="Share options"
+      estimatedWidth={220}
+      estimatedHeight={208}
+      preferredPlacement="top"
+    >
+      <div className="share-menu__label">Share to</div>
+      {SHARE_OPTIONS.map(({ label, icon: Icon }) => (
+        <button
+          key={label}
+          type="button"
+          className="dropdown__item"
+          onClick={() => share(label)}
+        >
+          <Icon size={15} /> {label}
+        </button>
+      ))}
+    </AnchoredPopup>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -29,6 +29,7 @@ import { SearchResultsPage } from "./features/videos/pages/SearchResultsPage";
 import { NotificationsPage } from "./features/notifications/pages/NotificationsPage";
 import { PullToRefresh } from "./shared/components/PullToRefresh";
 import { clearApiCache } from "./shared/services/api";
+import { ArrowLeft } from "lucide-react";
 
 function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -93,20 +94,34 @@ function DemoHome() {
     endDemo();
     navigate(path);
   };
+  const returnToOverview = () => {
+    endDemo();
+    navigate("/", { replace: true });
+  };
   return (
     <div className="demo-home">
       <div className="demo-home__notice">
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm demo-home__back"
+          onClick={returnToOverview}
+          aria-label="Back to overview"
+        >
+          <ArrowLeft size={16} /> <span>Overview</span>
+        </button>
         <span>Live demo</span>
         <p>You can browse the Home screen. Sign in to interact with Lume.</p>
+        <button
+          type="button"
+          className="btn btn--primary btn--sm demo-home__join"
+          onClick={() => setShowPrompt(true)}
+        >
+          Sign in
+        </button>
       </div>
       <main className="demo-home__content">
         <HomePage />
       </main>
-      <button
-        className="demo-home__interceptor"
-        aria-label="Sign in required"
-        onClick={() => setShowPrompt(true)}
-      />
       {showPrompt && (
         <div className="modal-overlay" onClick={() => setShowPrompt(false)}>
           <div
@@ -142,6 +157,14 @@ function DemoHome() {
   );
 }
 
+function DemoOverviewExit() {
+  const { endDemo } = useAuth();
+  useEffect(() => {
+    endDemo();
+  }, [endDemo]);
+  return <LandingPage />;
+}
+
 function MainRoutes() {
   const { isAuthenticated, isDemo, isLoading } = useAuth();
   if (isLoading)
@@ -154,6 +177,7 @@ function MainRoutes() {
     return (
       <Routes>
         <Route path="/demo" element={<DemoHome />} />
+        <Route path="/" element={<DemoOverviewExit />} />
         <Route path="*" element={<Navigate to="/demo" replace />} />
       </Routes>
     );

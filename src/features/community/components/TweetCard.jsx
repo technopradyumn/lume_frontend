@@ -1,5 +1,5 @@
 ﻿import React, { useState } from "react";
-import { createPortal } from "react-dom";
+import { useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Heart,
@@ -19,6 +19,7 @@ import {
 } from "../../../shared/services/api";
 import { useAnimatedToggle } from "../../../shared/hooks/useAnimatedToggle";
 import { ShareMenu } from "../../../shared/components/ShareMenu";
+import { AnchoredPopup } from "../../../shared/components/AnchoredPopup";
 
 export function TweetCard({
   tweet,
@@ -42,8 +43,11 @@ export function TweetCard({
   );
   const [subLoading, setSubLoading] = useState(false);
   const [toast, setToast] = useState("");
-  const [moreMenuPosition, setMoreMenuPosition] = useState(null);
-  const isOwner = user?._id === tweet.owner?._id;
+  const moreTriggerRef = useRef(null);
+  const shareTriggerRef = useRef(null);
+  const isOwner = Boolean(
+    user?._id && String(user._id) === String(tweet.owner?._id),
+  );
 
   const shareUrl = `${window.location.origin}/community/post/${tweet._id}`;
 
@@ -62,7 +66,11 @@ export function TweetCard({
 
   const handleSubscribeToggle = async (e) => {
     e.stopPropagation();
-    if (!user || isOwner || subLoading) return;
+    if (!user?._id) {
+      showToast("Please sign in to subscribe.");
+      return;
+    }
+    if (isOwner || subLoading) return;
     setSubLoading(true);
     const wasSubscribed = isSubscribed;
     setIsSubscribed(!wasSubscribed);
@@ -132,7 +140,14 @@ export function TweetCard({
       )}
 
       <div className="tweet-card__header">
-        <UserAvatar user={tweet.owner} size="md" />
+        <Link
+          to={`/channel/${tweet.owner?.username}`}
+          className="tweet-card__profile-link"
+          aria-label={`Open ${tweet.owner?.fullName || tweet.owner?.username}'s profile`}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <UserAvatar user={tweet.owner} size="md" noLink />
+        </Link>
         <div className="tweet-card__identity">
           <Link
             to={`/channel/${tweet.owner?.username}`}
@@ -149,8 +164,9 @@ export function TweetCard({
           </div>
         </div>
 
-        {user && !isOwner && (
+        {!isOwner && (
           <button
+            type="button"
             className={`btn btn--sm ${isSubscribed ? "btn--secondary" : "btn--primary"}`}
             onClick={handleSubscribeToggle}
             disabled={subLoading}
@@ -166,63 +182,53 @@ export function TweetCard({
 
         <div style={{ position: "relative", flexShrink: 0 }}>
           <button
+            ref={moreTriggerRef}
+            type="button"
             className="btn btn--icon-sm btn--ghost"
             onClick={(e) => {
               e.stopPropagation();
-              const rect = e.currentTarget.getBoundingClientRect();
-              setMoreMenuPosition({
-                right: Math.max(12, window.innerWidth - rect.right),
-                bottom: Math.max(12, window.innerHeight - rect.top + 8),
-              });
               moreMenu.toggle();
             }}
+            aria-label={`More actions for ${tweet.owner?.fullName || "post"}`}
           >
             <MoreHorizontal size={16} />
           </button>
-          {moreMenu.isOpen &&
-            moreMenuPosition &&
-            createPortal(
-              <>
-                <div
-                  className="popup-backdrop"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    moreMenu.close();
-                  }}
-                />
-                <div
-                  className={`dropdown popup-menu community-action-menu ${moreMenu.isClosing ? "dropdown--closing" : ""}`}
-                  style={moreMenuPosition}
-                >
-                  {isOwner ? (
-                    <button
-                      className="dropdown__item"
-                      style={{ color: "var(--danger)", width: "100%" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete?.(tweet._id);
-                        moreMenu.close();
-                      }}
-                    >
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  ) : (
-                    <button
-                      className="dropdown__item"
-                      style={{ width: "100%" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        showToast("Post reported. We will review it.");
-                        moreMenu.close();
-                      }}
-                    >
-                      <Flag size={14} /> Report
-                    </button>
-                  )}
-                </div>
-              </>,
-              document.body,
+          <AnchoredPopup
+            isOpen={moreMenu.isOpen}
+            isClosing={moreMenu.isClosing}
+            onClose={moreMenu.close}
+            anchorRef={moreTriggerRef}
+            className="community-action-menu"
+            ariaLabel="Post actions"
+            estimatedWidth={180}
+            estimatedHeight={56}
+          >
+            {isOwner ? (
+              <button
+                className="dropdown__item"
+                style={{ color: "var(--danger)", width: "100%" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete?.(tweet._id);
+                  moreMenu.close();
+                }}
+              >
+                <Trash2 size={14} /> Delete
+              </button>
+            ) : (
+              <button
+                className="dropdown__item"
+                style={{ width: "100%" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showToast("Post reported. We will review it.");
+                  moreMenu.close();
+                }}
+              >
+                <Flag size={14} /> Report
+              </button>
             )}
+          </AnchoredPopup>
         </div>
       </div>
 
@@ -265,6 +271,8 @@ export function TweetCard({
 
         <div style={{ position: "relative" }}>
           <button
+            ref={shareTriggerRef}
+            type="button"
             className={`tweet-card__action ${copied ? "tweet-card__action--liked" : ""}`}
             onClick={(e) => {
               e.stopPropagation();
@@ -281,7 +289,7 @@ export function TweetCard({
             onClose={shareMenu.close}
             url={shareUrl}
             onShared={handleShared}
-            align="left"
+            anchorRef={shareTriggerRef}
           />
         </div>
       </div>

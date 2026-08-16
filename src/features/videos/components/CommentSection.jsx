@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { timeAgo } from "../../../shared/utils/formatters";
 import { useAuth } from "../../../shared/context/AuthContext";
 import { UserAvatar } from "../../../shared/components/UserAvatar";
+import { useEffect } from "react";
 
 export function CommentSection({
   comments,
@@ -13,6 +14,15 @@ export function CommentSection({
 }) {
   const { user } = useAuth();
   const [newComment, setNewComment] = useState("");
+  const [visibleCount, setVisibleCount] = useState(3);
+
+  useEffect(() => {
+    setVisibleCount((count) =>
+      Math.min(Math.max(3, count), Math.max(3, comments.length)),
+    );
+  }, [comments.length]);
+
+  const visibleComments = comments.slice(0, visibleCount);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -48,7 +58,7 @@ export function CommentSection({
       </form>
 
       <div>
-        {comments.map((comment) => (
+        {visibleComments.map((comment) => (
           <div key={comment._id} className="comment animate-fade-in">
             <UserAvatar user={comment.owner} size="sm" />
             <div className="comment__body">
@@ -87,6 +97,23 @@ export function CommentSection({
             </div>
           </div>
         ))}
+        {comments.length > 3 && (
+          <button
+            type="button"
+            className="btn btn--secondary comments__show-more"
+            onClick={() =>
+              setVisibleCount((count) =>
+                count >= comments.length
+                  ? 3
+                  : Math.min(count + 3, comments.length),
+              )
+            }
+          >
+            {visibleCount >= comments.length
+              ? "Show fewer comments"
+              : `Show more comments (${comments.length - visibleCount})`}
+          </button>
+        )}
       </div>
     </div>
   );

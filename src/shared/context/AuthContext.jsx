@@ -21,14 +21,32 @@ export function AuthProvider({ children }) {
     return !!localStorage.getItem("lume_user");
   });
   const [isLoading, setIsLoading] = useState(
-    !localStorage.getItem("lume_user"),
+    () => !!localStorage.getItem("lume_token"),
   );
   const [isDemo, setIsDemo] = useState(
     () => sessionStorage.getItem("lume-demo") === "true",
   );
 
   useEffect(() => {
-    checkAuth();
+    if (localStorage.getItem("lume_token")) {
+      checkAuth();
+    } else {
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem("lume_user");
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const clearExpiredSession = () => {
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem("lume_user");
+      localStorage.removeItem("lume_token");
+    };
+    window.addEventListener("lume:session-expired", clearExpiredSession);
+    return () => window.removeEventListener("lume:session-expired", clearExpiredSession);
   }, []);
 
   const checkAuth = async () => {

@@ -163,7 +163,7 @@ export function LandingPage() {
             className="btn btn--primary btn--sm"
             onClick={() => navigate("/register")}
           >
-            Get Started
+            Create account
           </button>
         </div>
       </header>
