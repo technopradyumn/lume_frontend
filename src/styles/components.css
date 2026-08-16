@@ -1544,6 +1544,176 @@
   font-size: var(--font-size-xs);
   text-align: center;
 }
+.landing-page__footer,
+.landing-page__footer nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.landing-page__footer a {
+  color: var(--text-secondary);
+  font-weight: 650;
+}
+.landing-page__footer a:hover {
+  color: var(--accent-glow);
+}
+
+.public-info-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 15% 0%, var(--accent-muted), transparent 32%),
+    var(--bg-primary);
+}
+.public-info-page__header,
+.public-info-page__footer {
+  width: min(100% - 32px, 1040px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.public-info-page__header {
+  min-height: 72px;
+}
+.public-info-page__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+}
+.public-info-page__brand-mark {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: white;
+  background: var(--accent-gradient);
+  box-shadow: var(--shadow-glow);
+}
+.public-info-page__main {
+  width: min(100% - 32px, 920px);
+  margin: 0 auto;
+  flex: 1;
+  padding: var(--space-8) 0 var(--space-10);
+}
+.public-info-page__article {
+  padding: clamp(24px, 5vw, 56px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-lg);
+}
+.public-info-page__hero {
+  padding-bottom: var(--space-7);
+  margin-bottom: var(--space-7);
+  border-bottom: 1px solid var(--border-default);
+}
+.public-info-page__hero h1 {
+  margin: var(--space-4) 0 var(--space-3);
+  font-size: clamp(2rem, 6vw, 3.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+}
+.public-info-page__hero p,
+.public-info-page__content p,
+.public-info-page__content li {
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+.public-info-page__hero p {
+  max-width: 720px;
+  font-size: var(--font-size-md);
+}
+.public-info-page__content {
+  display: grid;
+  gap: var(--space-7);
+}
+.public-info-page__content section {
+  display: grid;
+  gap: var(--space-3);
+}
+.public-info-page__content h2 {
+  font-size: var(--font-size-lg);
+  letter-spacing: -0.02em;
+}
+.public-info-page__content ul {
+  display: grid;
+  gap: var(--space-2);
+  padding-left: 1.25rem;
+}
+.public-info-page__feature-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.public-info-page__feature {
+  padding: var(--space-5);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+}
+.public-info-page__feature svg {
+  color: var(--accent-glow);
+}
+.public-info-page__feature h3 {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-md);
+}
+.public-info-page__version-card {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--accent-muted);
+}
+.public-info-page__version-card div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.public-info-page__version-card span,
+.public-info-page__updated {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+}
+.public-info-page__version-card strong {
+  font-size: var(--font-size-lg);
+}
+.public-info-page__footer {
+  padding: var(--space-6) 0;
+  border-top: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+}
+.public-info-page__footer nav {
+  display: flex;
+  gap: var(--space-4);
+}
+.public-info-page__footer a {
+  color: var(--text-secondary);
+}
+@media (max-width: 640px) {
+  .public-info-page__main {
+    width: min(100% - 20px, 920px);
+    padding-top: var(--space-4);
+  }
+  .public-info-page__article {
+    padding: var(--space-5);
+  }
+  .public-info-page__feature-grid,
+  .public-info-page__version-card {
+    grid-template-columns: 1fr;
+  }
+  .public-info-page__footer {
+    flex-direction: column;
+    text-align: center;
+  }
+}
 @media (max-width: 900px) {
   .landing-bento {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -1,5 +1,7 @@
 # Lume Frontend
 
+Current application release: **2.1.0** · Compatible API namespace: **v1**
+
 The React web client for Lume, a video discovery, creator, and community platform. It provides public browsing, demo access, protected account experiences, video playback, creator tools, community interaction, and personal video libraries.
 
 ## Stack

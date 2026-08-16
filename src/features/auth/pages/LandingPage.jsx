@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../../shared/context/AuthContext";
 import { useTheme } from "../../../shared/context/ThemeContext";
+import { APP_VERSION } from "../../../shared/config/version";
 
 const themeOptions = [
   { value: "system", label: "System", icon: Monitor },
@@ -346,7 +347,12 @@ export function LandingPage() {
         </section>
       </main>
       <footer className="landing-page__footer">
-        © 2026 Lume Platform. All rights reserved.
+        <span>© 2026 Lume Platform. All rights reserved.</span>
+        <nav aria-label="Company and legal links">
+          <Link to="/about">About</Link>
+          <Link to="/privacy">Privacy Policy</Link>
+        </nav>
+        <span>v{APP_VERSION}</span>
       </footer>
     </div>
   );

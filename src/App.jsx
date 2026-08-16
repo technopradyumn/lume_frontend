@@ -27,6 +27,8 @@ import { DashboardPage } from "./features/dashboard/pages/DashboardPage";
 import { SettingsPage } from "./features/dashboard/pages/SettingsPage";
 import { SearchResultsPage } from "./features/videos/pages/SearchResultsPage";
 import { NotificationsPage } from "./features/notifications/pages/NotificationsPage";
+import { AboutPage } from "./features/legal/pages/AboutPage";
+import { PrivacyPolicyPage } from "./features/legal/pages/PrivacyPolicyPage";
 import { PullToRefresh } from "./shared/components/PullToRefresh";
 import { clearApiCache } from "./shared/services/api";
 import { ArrowLeft } from "lucide-react";
@@ -78,6 +80,8 @@ function AppLayout() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/search" element={<SearchResultsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
         </Routes>
         </PullToRefresh>
       </main>
@@ -177,6 +181,8 @@ function MainRoutes() {
     return (
       <Routes>
         <Route path="/demo" element={<DemoHome />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/" element={<DemoOverviewExit />} />
         <Route path="*" element={<Navigate to="/demo" replace />} />
       </Routes>
@@ -187,6 +193,8 @@ function MainRoutes() {
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="*" element={<LandingPage />} />
       </Routes>
     );
