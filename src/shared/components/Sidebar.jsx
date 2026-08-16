@@ -10,6 +10,8 @@ import {
   LayoutDashboard,
   Settings,
   Bookmark,
+  Info,
+  ShieldCheck,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -28,6 +30,11 @@ const LIBRARY_ITEMS = [
 const CREATOR_ITEMS = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/settings", icon: Settings, label: "Settings" },
+];
+
+const COMPANY_ITEMS = [
+  { to: "/about", icon: Info, label: "About" },
+  { to: "/privacy", icon: ShieldCheck, label: "Privacy" },
 ];
 
 export function Sidebar({ collapsed, mobileOpen, onNavigate }) {
@@ -77,6 +84,23 @@ export function Sidebar({ collapsed, mobileOpen, onNavigate }) {
       <div className="sidebar__section-title">Creator</div>
 
       {CREATOR_ITEMS.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          className={({ isActive }) =>
+            `sidebar__item ${isActive ? "sidebar__item--active" : ""}`
+          }
+          onClick={onNavigate}
+        >
+          <item.icon className="sidebar__icon" />
+          <span className="sidebar__label">{item.label}</span>
+        </NavLink>
+      ))}
+
+      <div className="sidebar__divider" />
+      <div className="sidebar__section-title">Lume</div>
+
+      {COMPANY_ITEMS.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
