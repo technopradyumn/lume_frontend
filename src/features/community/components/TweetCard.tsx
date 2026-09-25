@@ -1,0 +1,423 @@
+"use client";
+
+import React, { useState, useRef } from "react";
+import { Link, useNavigate } from "../../../shared/components/Navigation";
+import {
+  Heart,
+  MessageCircle,
+  Trash2,
+  MoreHorizontal,
+  Share2,
+  Flag,
+  Check,
+} from "lucide-react";
+import { UserAvatar } from "../../../shared/components/UserAvatar";
+import { timeAgo, formatViews } from "../../../shared/utils/formatters";
+import { useAuth } from "../../../shared/context/AuthContext";
+import {
+  addTweetReply,
+  toggleSubscription,
+  TweetItem,
+} from "../../../shared/services/api";
+import { useAnimatedToggle } from "../../../shared/hooks/useAnimatedToggle";
+import { ShareMenu } from "../../../shared/components/ShareMenu";
+import { AnchoredPopup } from "../../../shared/components/AnchoredPopup";
+
+export interface TweetCardProps {
+  tweet: TweetItem;
+  onLike?: (tweetId: string) => void;
+  onDelete?: (tweetId: string) => void;
+  onAddReply?: (tweetId: string, updatedTweet: TweetItem) => void;
+  detailView?: boolean;
+}
+
+export function TweetCard({
+  tweet,
+  onLike,
+  onDelete,
+  onAddReply,
+  detailView = false,
+}: TweetCardProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const moreMenu = useAnimatedToggle();
+  const shareMenu = useAnimatedToggle();
+  const [showReplies, setShowReplies] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(
+    tweet.owner?.isSubscribed || false,
+  );
+  const [subscribersCount, setSubscribersCount] = useState(
+    tweet.owner?.subscribersCount || 0,
+  );
+  const [subLoading, setSubLoading] = useState(false);
+  const [toast, setToast] = useState("");
+  const moreTriggerRef = useRef<HTMLButtonElement>(null);
+  const shareTriggerRef = useRef<HTMLButtonElement>(null);
+  const isOwner = Boolean(
+    user?._id && String(user._id) === String(tweet.owner?._id),
+  );
+
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/community/post/${tweet._id}`
+      : `/community/post/${tweet._id}`;
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 2500);
+  };
+
+  const handleShared = (message: string) => {
+    if (message === "Link copied to clipboard!") {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+    showToast(message);
+  };
+
+  const handleSubscribeToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user?._id) {
+      showToast("Please sign in to subscribe.");
+      return;
+    }
+    if (isOwner || subLoading) return;
+    setSubLoading(true);
+    const wasSubscribed = isSubscribed;
+    setIsSubscribed(!wasSubscribed);
+    setSubscribersCount((count) => Math.max(0, count + (wasSubscribed ? -1 : 1)));
+    try {
+      await toggleSubscription(tweet.owner._id);
+      showToast(
+        wasSubscribed
+          ? `Unsubscribed from ${tweet.owner?.fullName}`
+          : `Subscribed to ${tweet.owner?.fullName}!`,
+      );
+    } catch (err) {
+      setIsSubscribed(wasSubscribed);
+      setSubscribersCount((count) => Math.max(0, count + (wasSubscribed ? 1 : -1)));
+      console.error("Toggle subscription failed:", err);
+    } finally {
+      setSubLoading(false);
+    }
+  };
+
+  const handleReplySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (replyText.trim()) {
+      try {
+        const updatedTweet = await addTweetReply(tweet._id, replyText.trim());
+        if (updatedTweet) {
+          onAddReply?.(tweet._id, updatedTweet);
+          setReplyText("");
+        }
+      } catch (err) {
+        console.error("Failed to submit reply:", err);
+      }
+    }
+  };
+
+  const handleBodyClick = () => {
+    if (!detailView) navigate(`/community/post/${tweet._id}`);
+  };
+
+  return (
+    <article
+      className="tweet-card animate-fade-in-up"
+      style={{ position: "relative" }}
+    >
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 80,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "var(--bg-elevated)",
+            color: "var(--text-primary)",
+            padding: "10px 20px",
+            borderRadius: "var(--radius-full)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+            zIndex: 9999,
+            fontSize: "var(--font-size-sm)",
+            fontWeight: 500,
+            border: "1px solid var(--border-default)",
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+          }}
+        >
+          {toast}
+        </div>
+      )}
+
+      <div className="tweet-card__header">
+        <Link
+          to={`/channel/${tweet.owner?.username}`}
+          className="tweet-card__profile-link"
+          aria-label={`Open ${tweet.owner?.fullName || tweet.owner?.username}'s profile`}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <UserAvatar user={tweet.owner} size="md" noLink />
+        </Link>
+        <div className="tweet-card__identity">
+          <Link
+            to={`/channel/${tweet.owner?.username}`}
+            style={{ textDecoration: "none", color: "inherit" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="tweet-card__author">{tweet.owner?.fullName}</div>
+            <div className="tweet-card__handle">
+              @{tweet.owner?.username} · {timeAgo(tweet.createdAt)}
+            </div>
+          </Link>
+          <div className="tweet-card__subscribers">
+            {formatViews(subscribersCount)} subscribers
+          </div>
+        </div>
+
+        {!isOwner && (
+          <button
+            type="button"
+            className={`btn btn--sm ${isSubscribed ? "btn--secondary" : "btn--primary"}`}
+            onClick={handleSubscribeToggle}
+            disabled={subLoading}
+            style={{
+              fontSize: "var(--font-size-xs)",
+              padding: "4px 12px",
+              flexShrink: 0,
+            }}
+          >
+            {isSubscribed ? "Subscribed" : "Subscribe"}
+          </button>
+        )}
+
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <button
+            ref={moreTriggerRef}
+            type="button"
+            className="btn btn--icon-sm btn--ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              moreMenu.toggle();
+            }}
+            aria-label={`More actions for ${tweet.owner?.fullName || "post"}`}
+          >
+            <MoreHorizontal size={16} />
+          </button>
+          <AnchoredPopup
+            isOpen={moreMenu.isOpen}
+            isClosing={moreMenu.isClosing}
+            onClose={moreMenu.close}
+            anchorRef={moreTriggerRef}
+            className="community-action-menu"
+            ariaLabel="Post actions"
+            estimatedWidth={180}
+            estimatedHeight={56}
+          >
+            {isOwner ? (
+              <button
+                type="button"
+                className="dropdown__item"
+                style={{ color: "var(--danger)", width: "100%" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete?.(tweet._id);
+                  moreMenu.close();
+                }}
+              >
+                <Trash2 size={14} /> Delete
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="dropdown__item"
+                style={{ width: "100%" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showToast("Post reported. We will review it.");
+                  moreMenu.close();
+                }}
+              >
+                <Flag size={14} /> Report
+              </button>
+            )}
+          </AnchoredPopup>
+        </div>
+      </div>
+
+      <div
+        onClick={handleBodyClick}
+        style={{ cursor: detailView ? "default" : "pointer" }}
+      >
+        <p className="tweet-card__content" style={{ whiteSpace: "pre-wrap" }}>
+          {tweet.content}
+        </p>
+        {tweet.image && (
+          <div className="tweet-card__media">
+            <img src={tweet.image} alt="Post attachment" />
+          </div>
+        )}
+      </div>
+
+      <div className="tweet-card__actions" style={{ position: "relative" }}>
+        <button
+          type="button"
+          className={`tweet-card__action ${tweet.isLiked ? "tweet-card__action--liked" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onLike?.(tweet._id);
+          }}
+        >
+          <Heart size={16} fill={tweet.isLiked ? "currentColor" : "none"} />
+          <span>{tweet.likesCount || 0}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tweet-card__action ${showReplies ? "tweet-card__action--liked" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowReplies(!showReplies);
+          }}
+        >
+          <MessageCircle size={16} />
+          <span>{tweet.replies?.length || 0}</span>
+        </button>
+
+        <div style={{ position: "relative" }}>
+          <button
+            ref={shareTriggerRef}
+            type="button"
+            className={`tweet-card__action ${copied ? "tweet-card__action--liked" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              shareMenu.toggle();
+            }}
+          >
+            {copied ? <Check size={16} /> : <Share2 size={16} />}
+            <span>{copied ? "Copied!" : "Share"}</span>
+          </button>
+
+          <ShareMenu
+            isOpen={shareMenu.isOpen}
+            isClosing={shareMenu.isClosing}
+            onClose={shareMenu.close}
+            url={shareUrl}
+            onShared={handleShared}
+            anchorRef={shareTriggerRef}
+          />
+        </div>
+      </div>
+
+      {showReplies && (
+        <div
+          style={{
+            marginTop: "var(--space-4)",
+            borderTop: "1px solid var(--border-default)",
+            paddingTop: "var(--space-4)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-4)",
+          }}
+        >
+          <form
+            style={{
+              display: "flex",
+              gap: "var(--space-2)",
+              alignItems: "center",
+            }}
+            onSubmit={(e) => {
+              e.stopPropagation();
+              handleReplySubmit(e);
+            }}
+          >
+            <UserAvatar user={user} size="xs" noLink />
+            <input
+              className="input"
+              placeholder="Write a reply..."
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              style={{ flex: 1, height: 32, fontSize: "var(--font-size-xs)" }}
+            />
+            <button
+              className="btn btn--primary btn--sm"
+              type="submit"
+              disabled={!replyText.trim()}
+              style={{ height: 32 }}
+            >
+              Reply
+            </button>
+          </form>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+              maxHeight: 240,
+              overflowY: "auto",
+            }}
+          >
+            {(tweet.replies || []).map((reply, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  gap: "var(--space-2)",
+                  alignItems: "flex-start",
+                }}
+                className="animate-fade-in"
+              >
+                <UserAvatar user={reply.owner} size="xs" />
+                <div
+                  style={{
+                    flex: 1,
+                    background: "var(--bg-elevated)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "var(--space-2) var(--space-3)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 2,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "11px",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {reply.owner?.fullName}
+                    </span>
+                    <span
+                      style={{ fontSize: "9px", color: "var(--text-tertiary)" }}
+                    >
+                      {timeAgo(reply.createdAt)}
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: "var(--font-size-xs)",
+                      color: "var(--text-secondary)",
+                      margin: 0,
+                    }}
+                  >
+                    {reply.content}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </article>
+  );
+}

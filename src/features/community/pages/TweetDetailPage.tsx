@@ -1,0 +1,122 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "../../../shared/components/Navigation";
+import { ArrowLeft, MessageSquare } from "lucide-react";
+import {
+  deleteTweet,
+  getTweetById,
+  getTweets,
+  toggleTweetLike,
+  TweetItem,
+} from "../../../shared/services/api";
+import { TweetCard } from "../components/TweetCard";
+import { Skeleton } from "../../../shared/components/Skeleton";
+import { EmptyState } from "../../../shared/components/EmptyState";
+
+export function TweetDetailPage() {
+  const params = useParams();
+  const tweetId = (params?.tweetId as string) || "";
+  const navigate = useNavigate();
+  const [tweet, setTweet] = useState<TweetItem | null>(null);
+  const [related, setRelated] = useState<TweetItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!tweetId) return;
+    const loadPost = async () => {
+      setIsLoading(true);
+      try {
+        const [post, posts] = await Promise.all([
+          getTweetById(tweetId),
+          getTweets(),
+        ]);
+        setTweet(post);
+        setRelated(
+          (posts || []).filter((item) => item._id !== tweetId).slice(0, 4),
+        );
+      } catch (error) {
+        console.error("Failed to load post:", error);
+        setTweet(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadPost();
+  }, [tweetId]);
+
+  const handleLike = async (id: string) => {
+    const previous = tweet;
+    setTweet((current) =>
+      current
+        ? {
+            ...current,
+            isLiked: !current.isLiked,
+            likesCount: Math.max(0, (current.likesCount || 0) + (current.isLiked ? -1 : 1)),
+          }
+        : null,
+    );
+    try {
+      await toggleTweetLike(id);
+    } catch (error) {
+      setTweet(previous);
+      console.error("Failed to like post:", error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteTweet(id);
+    navigate("/community");
+  };
+
+  return (
+    <div className="page-container animate-fade-in">
+      <button
+        className="btn btn--ghost btn--sm"
+        onClick={() => navigate(-1)}
+        style={{ marginBottom: "var(--space-4)" }}
+      >
+        <ArrowLeft size={16} /> Back to Community
+      </button>
+      {isLoading ? (
+        <Skeleton height="300px" borderRadius="var(--radius-xl)" />
+      ) : tweet ? (
+        <div className="player-layout">
+          <section style={{ minWidth: 0 }}>
+            <div className="section-header">
+              <div>
+                <h1 className="section-title">Post</h1>
+                <p className="section-subtitle">Join the conversation</p>
+              </div>
+            </div>
+            <TweetCard
+              tweet={tweet}
+              onLike={handleLike}
+              onDelete={handleDelete}
+              onAddReply={(_, updatedTweet) => setTweet(updatedTweet)}
+              detailView
+            />
+          </section>
+          <aside className="player-sidebar">
+            <h2 className="player-sidebar__title">
+              <MessageSquare size={18} /> More from Community
+            </h2>
+            {related.map((post) => (
+              <TweetCard
+                key={post._id}
+                tweet={post}
+                onLike={() => {}}
+                onDelete={() => {}}
+              />
+            ))}
+          </aside>
+        </div>
+      ) : (
+        <EmptyState
+          title="Post not found"
+          description="This community post may have been removed or does not exist."
+        />
+      )}
+    </div>
+  );
+}
