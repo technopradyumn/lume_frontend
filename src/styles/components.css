@@ -668,7 +668,7 @@
 
 .dashboard-overview__section-heading {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-4);
   margin-bottom: var(--space-5);
@@ -1246,7 +1246,7 @@
 .landing-showcase__heading {
   display: flex;
   justify-content: space-between;
-  align-items: end;
+  align-items: flex-end;
   gap: var(--space-6);
   margin-bottom: var(--space-6);
 }
